@@ -1,0 +1,14 @@
+#include "ResourceIds.hpp"
+
+'STR#' ID_ADDON_INFO "Add-on Name and Description" {
+/* [  1] */		"Maze Generator"
+/* [  2] */		"Maze generator Add-On for training purposes."
+}
+
+'STR#' ID_ADDON_MENU "Strings for the Menu" {
+/* [  1] */		"Generate Maze... ^E3 ^ES ^EE ^EI ^ED ^ET ^10001"
+}
+
+'STR#' ID_ADDON_STRINGS "Add-On Strings" {
+/* [  1] */		"Generate Maze"
+}
