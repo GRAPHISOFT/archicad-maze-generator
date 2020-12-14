@@ -12,3 +12,39 @@
 'STR#' ID_ADDON_STRINGS "Add-On Strings" {
 /* [  1] */		"Generate Maze"
 }
+
+'GDLG' ID_ADDON_DLG Modal          40   40  250  452  "Maze Settings" {
+/* [  1] */ Button                150  419   90   23    LargePlain  "OK"
+/* [  2] */ Button                 50  419   90   23    LargePlain  "Cancel"
+/* [  3] */ Icon                   15   10  220  160    10002
+/* [  4] */ LeftText               10  180  230   23    LargeBold vCenter "Grid Settings"
+/* [  5] */ LeftText               10  210  130   23    LargePlain vCenter "Number of Rows"
+/* [  6] */ PosIntEdit            150  210   90   23    LargePlain "1" "50"
+/* [  7] */ LeftText               10  240  130   23    LargePlain vCenter "Number of Columns"
+/* [  8] */ PosIntEdit            150  240   90   23    LargePlain "1" "50"
+/* [  9] */ LeftText               10  270  130   23    LargePlain vCenter "Cell Dimension"
+/* [ 10] */ LengthEdit            150  270   90   23    LargePlain "1.00" "50.0"
+/* [ 11] */ Separator              10  305  230    2
+/* [ 12] */ LeftText               10  317  230   23    LargeBold vCenter "Options"
+/* [ 13] */ CheckBox               10  347  230   23    LargePlain "Group placed elements"
+/* [ 14] */ CheckBox               10  372  230   23    LargePlain "Place slab under walls"
+/* [ 15] */ Separator              10  407  230    2
+}
+
+'DLGH' ID_ADDON_DLG DLG_Maze_Settings {
+1  ""  Button_0
+2  ""  Button_1
+3  ""  Icon_0
+4  ""  LeftText_0
+5  ""  LeftText_1
+6  ""  PosIntEdit_0
+7  ""  LeftText_2
+8  ""  PosIntEdit_1
+9  ""  LeftText_3
+10 ""  LengthEdit_0
+11 ""  Separator_0
+12 ""  LeftText_4
+13 ""  CheckBox_0
+14 ""  CheckBox_1
+15 ""  Separator_1
+}

@@ -6,3 +6,7 @@
 'GICN' 10001 "AddOnIcon" {
 	"AddOnIcon"
 }
+
+'GICN' 10002 "DialogDrawing" {
+	"DialogDrawing"
+}

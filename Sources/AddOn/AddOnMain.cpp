@@ -3,6 +3,8 @@
 
 #include "ResourceIds.hpp"
 #include "MazeGenerator.hpp"
+#include "MazeSettings.hpp"
+#include "MazeSettingsDialog.hpp"
 
 static const GSResID AddOnInfoID			= ID_ADDON_INFO;
 	static const Int32 AddOnNameID			= 1;
@@ -25,7 +27,7 @@ static void GenerateMazeWallGeometries (int rowCount, int colCount, double cellS
 	mazeWalls = maze.GetWallGeometries (cellSize);
 }
 
-static GSErrCode CreateWallElement (double begX, double begY, double endX, double endY)
+static GSErrCode CreateWallElement (double begX, double begY, double endX, double endY, API_Guid& placedWallGuid)
 {
 	GSErrCode err = NoError;
 
@@ -44,10 +46,11 @@ static GSErrCode CreateWallElement (double begX, double begY, double endX, doubl
 		return err;
 	}
 
+	placedWallGuid = wallElement.header.guid;
 	return NoError;
 }
 
-static GSErrCode CreateSlabElement (double begX, double begY, double endX, double endY)
+static GSErrCode CreateSlabElement (double begX, double begY, double endX, double endY, API_Guid& placedSlabGuid)
 {
 	GSErrCode err = NoError;
 
@@ -79,36 +82,63 @@ static GSErrCode CreateSlabElement (double begX, double begY, double endX, doubl
 		return err;
 	}
 
+	placedSlabGuid = slabElement.header.guid;
 	return NoError;
+}
+
+static bool GetMazeSettingsFromDialog (MazeSettings& mazeSettings)
+{
+	MazeSettings initialMazeSettings (10, 20, 1.0, true, true);
+	MazeSettingsDialog mazeSettingsDialog (initialMazeSettings);
+	if (mazeSettingsDialog.Invoke ()) {
+		mazeSettings = mazeSettingsDialog.GetMazeSettings ();
+		return true;
+	} else {
+		return false;
+	}
 }
 
 static void GenerateMaze ()
 {
-	static const int MazeRowCount = 10;
-	static const int MazeColCount = 20;
-	static const double MazeCellSize = 2.0;
-	static const double SlabPadding = 2.0;
+	MazeSettings mazeSettings;
+	if (!GetMazeSettingsFromDialog (mazeSettings)) {
+		return;
+	}
 
 	std::vector<MG::WallGeometry> mazeWalls;
-	GenerateMazeWallGeometries (MazeRowCount, MazeColCount, MazeCellSize, mazeWalls);
+	GenerateMazeWallGeometries (mazeSettings.rowCount, mazeSettings.columnCount, mazeSettings.cellSize, mazeWalls);
 
+	static const double SlabPadding = 2.0;
 	double slabBegX = -SlabPadding;
 	double slabBegY = -SlabPadding;
-	double slabEndX = MazeCellSize * MazeColCount + SlabPadding;
-	double slabEndY = MazeCellSize * MazeRowCount + SlabPadding;
+	double slabEndX = mazeSettings.cellSize * mazeSettings.columnCount + SlabPadding;
+	double slabEndY = mazeSettings.cellSize * mazeSettings.rowCount + SlabPadding;
 
 	GS::UniString undoString = RSGetIndString (AddOnStringsID, UndoStringID, ACAPI_GetOwnResModule ());
 	ACAPI_CallUndoableCommand (undoString, [&] () -> GSErrCode {
+		GS::Array<API_Guid> placedElementGuids;
 		GSErrCode err = NoError;
 		for (const MG::WallGeometry& mazeWall : mazeWalls) {
-			err = CreateWallElement (mazeWall.begX, mazeWall.begY, mazeWall.endX, mazeWall.endY);
+			API_Guid placedWallGuid;
+			err = CreateWallElement (mazeWall.begX, mazeWall.begY, mazeWall.endX, mazeWall.endY, placedWallGuid);
 			if (err != NoError) {
 				return APIERR_CANCEL;
 			}
+			placedElementGuids.Push (placedWallGuid);
 		}
-		err = CreateSlabElement (slabBegX, slabBegY, slabEndX, slabEndY);
-		if (err != NoError) {
-			return APIERR_CANCEL;
+		if (mazeSettings.createSlab) {
+			API_Guid placedSlabGuid;
+			err = CreateSlabElement (slabBegX, slabBegY, slabEndX, slabEndY, placedSlabGuid);
+			if (err != NoError) {
+				return APIERR_CANCEL;
+			}
+			placedElementGuids.Push (placedSlabGuid);
+		}
+		if (mazeSettings.createGroup) {
+			err = ACAPI_ElementGroup_Create (placedElementGuids);
+			if (err != NoError) {
+				return APIERR_CANCEL;
+			}
 		}
 		return NoError;
 	});
