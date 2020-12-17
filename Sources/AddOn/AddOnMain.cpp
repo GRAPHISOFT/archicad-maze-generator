@@ -1,6 +1,9 @@
 #include "APIEnvir.h"
 #include "ACAPinc.h"
 
+#include "MemoryIChannel32.hpp"
+#include "MemoryOChannel32.hpp"
+
 #include "ResourceIds.hpp"
 #include "MazeGenerator.hpp"
 #include "MazeSettings.hpp"
@@ -15,6 +18,8 @@ static const short AddOnMenuID				= ID_ADDON_MENU;
 
 static const GSResID AddOnStringsID			= ID_ADDON_STRINGS;
 	static const Int32 UndoStringID			= 1;
+
+static const Int32 PreferencesVersion		= 1;
 
 static void GenerateMazeWallGeometries (int rowCount, int colCount, double cellSize, std::vector<MG::WallGeometry>& mazeWalls)
 {
@@ -86,12 +91,68 @@ static GSErrCode CreateSlabElement (double begX, double begY, double endX, doubl
 	return NoError;
 }
 
+static bool LoadMazeSettingsFromPreferences (MazeSettings& mazeSettings)
+{
+	GSErrCode err = NoError;
+
+	Int32 version = 0;
+	GSSize bytes = 0;
+	err = ACAPI_GetPreferences (&version, &bytes, nullptr);
+	if (err != NoError || version == 0 || bytes == 0) {
+		return false;
+	}
+
+	char* data = new char[bytes];
+	err = ACAPI_GetPreferences (&version, &bytes, data);
+	if (err != NoError) {
+		delete[] data;
+		return false;
+	}
+
+	MazeSettings tempMazeSettings;
+	IO::MemoryIChannel32 inputChannel (data, bytes);
+	err = tempMazeSettings.Read (inputChannel);
+	if (err != NoError) {
+		delete[] data;
+		return false;
+	}
+
+	mazeSettings = tempMazeSettings;
+
+	delete[] data;
+	return true;
+}
+
+static bool WriteMazeSettingsToPreferences (const MazeSettings& mazeSettings)
+{
+	GSErrCode err = NoError;
+
+	IO::MemoryOChannel32 outputChannel;
+	err = mazeSettings.Write (outputChannel);
+	if (err != NoError) {
+		return false;
+	}
+
+	USize bytes = outputChannel.GetDataSize ();
+	const char* data = outputChannel.GetDestination ();
+
+	err = ACAPI_SetPreferences (PreferencesVersion, bytes, data);
+	if (err != NoError) {
+		return false;
+	}
+
+	return true;
+}
+
 static bool GetMazeSettingsFromDialog (MazeSettings& mazeSettings)
 {
 	MazeSettings initialMazeSettings (10, 20, 1.0, true, true);
+	LoadMazeSettingsFromPreferences (initialMazeSettings);
+
 	MazeSettingsDialog mazeSettingsDialog (initialMazeSettings);
 	if (mazeSettingsDialog.Invoke ()) {
 		mazeSettings = mazeSettingsDialog.GetMazeSettings ();
+		WriteMazeSettingsToPreferences (mazeSettings);
 		return true;
 	} else {
 		return false;
