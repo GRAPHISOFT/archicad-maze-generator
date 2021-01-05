@@ -1,8 +1,8 @@
 #include "APIEnvir.h"
 #include "ACAPinc.h"
 
-#include "MemoryIChannel32.hpp"
-#include "MemoryOChannel32.hpp"
+#include "MemoryIChannel.hpp"
+#include "MemoryOChannel.hpp"
 
 #include "ResourceIds.hpp"
 #include "MazeGenerator.hpp"
@@ -110,7 +110,7 @@ static bool LoadMazeSettingsFromPreferences (MazeSettings& mazeSettings)
 	}
 
 	MazeSettings tempMazeSettings;
-	IO::MemoryIChannel32 inputChannel (data, bytes);
+	IO::MemoryIChannel inputChannel (data, bytes);
 	err = tempMazeSettings.Read (inputChannel);
 	if (err != NoError) {
 		delete[] data;
@@ -127,16 +127,16 @@ static bool WriteMazeSettingsToPreferences (const MazeSettings& mazeSettings)
 {
 	GSErrCode err = NoError;
 
-	IO::MemoryOChannel32 outputChannel;
+	IO::MemoryOChannel outputChannel;
 	err = mazeSettings.Write (outputChannel);
 	if (err != NoError) {
 		return false;
 	}
 
-	USize bytes = outputChannel.GetDataSize ();
+	UInt64 bytes = outputChannel.GetDataSize ();
 	const char* data = outputChannel.GetDestination ();
 
-	err = ACAPI_SetPreferences (PreferencesVersion, bytes, data);
+	err = ACAPI_SetPreferences (PreferencesVersion, (GSSize) bytes, data);
 	if (err != NoError) {
 		return false;
 	}
