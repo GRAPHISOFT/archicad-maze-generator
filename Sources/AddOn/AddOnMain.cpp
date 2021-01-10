@@ -9,6 +9,14 @@
 #include "MazeSettings.hpp"
 #include "MazeSettingsDialog.hpp"
 
+#if defined (ServerMainVers_2500)
+	using MemoryIChannel = GS::MemoryIChannel;
+	using MemoryOChannel = GS::MemoryOChannel;
+#else
+	using MemoryIChannel = IO::MemoryIChannel;
+	using MemoryOChannel = IO::MemoryOChannel;
+#endif
+
 static const GSResID AddOnInfoID			= ID_ADDON_INFO;
 	static const Int32 AddOnNameID			= 1;
 	static const Int32 AddOnDescriptionID	= 2;
@@ -110,7 +118,7 @@ static bool LoadMazeSettingsFromPreferences (MazeSettings& mazeSettings)
 	}
 
 	MazeSettings tempMazeSettings;
-	IO::MemoryIChannel inputChannel (data, bytes);
+	MemoryIChannel inputChannel (data, bytes);
 	err = tempMazeSettings.Read (inputChannel);
 	if (err != NoError) {
 		delete[] data;
@@ -127,7 +135,7 @@ static bool WriteMazeSettingsToPreferences (const MazeSettings& mazeSettings)
 {
 	GSErrCode err = NoError;
 
-	IO::MemoryOChannel outputChannel;
+	MemoryOChannel outputChannel;
 	err = mazeSettings.Write (outputChannel);
 	if (err != NoError) {
 		return false;
