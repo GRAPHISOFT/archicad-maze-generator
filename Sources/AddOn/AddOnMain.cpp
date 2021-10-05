@@ -1,21 +1,12 @@
 #include "APIEnvir.h"
 #include "ACAPinc.h"
 
-#include "MemoryIChannel.hpp"
-#include "MemoryOChannel.hpp"
-
 #include "ResourceIds.hpp"
 #include "MazeGenerator.hpp"
 #include "MazeSettings.hpp"
 #include "MazeSettingsDialog.hpp"
 
-#if defined (ServerMainVers_2500)
-	using MemoryIChannel = GS::MemoryIChannel;
-	using MemoryOChannel = GS::MemoryOChannel;
-#else
-	using MemoryIChannel = IO::MemoryIChannel;
-	using MemoryOChannel = IO::MemoryOChannel;
-#endif
+#include "MigrationUtils.hpp"
 
 static const GSResID AddOnInfoID			= ID_ADDON_INFO;
 	static const Int32 AddOnNameID			= 1;
@@ -45,7 +36,7 @@ static GSErrCode CreateWallElement (double begX, double begY, double endX, doubl
 	GSErrCode err = NoError;
 
 	API_Element wallElement = {};
-	wallElement.header.typeID = API_WallID;
+	SetAPIElementType (wallElement, API_WallID);
 	err = ACAPI_Element_GetDefaults (&wallElement, nullptr);
 	if (err != NoError) {
 		return err;
@@ -68,7 +59,7 @@ static GSErrCode CreateSlabElement (double begX, double begY, double endX, doubl
 	GSErrCode err = NoError;
 
 	API_Element slabElement = {};
-	slabElement.header.typeID = API_SlabID;
+	SetAPIElementType (slabElement, API_SlabID);
 	err = ACAPI_Element_GetDefaults (&slabElement, nullptr);
 	if (err != NoError) {
 		return err;
