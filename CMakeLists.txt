@@ -1,7 +1,11 @@
 cmake_minimum_required (VERSION 3.16)
 
-function (SetCompilerOptions target)
-	target_compile_features (${target} PUBLIC cxx_std_14)
+function (SetCompilerOptions target ac_version)
+	if (${ac_version} EQUAL "27")
+		target_compile_features (${target} PUBLIC cxx_std_17)
+	else ()
+		target_compile_features (${target} PUBLIC cxx_std_14)
+	endif ()
 	target_compile_options (${target} PUBLIC "$<$<CONFIG:Debug>:-DDEBUG>")
 	if (WIN32)
 		target_compile_options (${target} PUBLIC /W4 /WX
@@ -162,7 +166,7 @@ else ()
 	)
 endif ()
 
-SetCompilerOptions (AddOn)
+SetCompilerOptions (AddOn ARCHICAD_VERSION)
 file (GLOB ModuleFolders ${AC_API_DEVKIT_DIR}/Support/Modules/*)
 target_include_directories (AddOn PUBLIC ${ModuleFolders})
 if (WIN32)
