@@ -11,6 +11,7 @@ function (SetCompilerOptions target ac_version)
 		target_compile_options (${target} PUBLIC /W4 /WX
 			/Zc:wchar_t-
 			/wd4499
+			/EHsc
 		)
 	else ()
 		target_compile_options (${target} PUBLIC -Wall -Wextra -Werror
@@ -26,13 +27,22 @@ function (SetCompilerOptions target ac_version)
 	endif ()
 endfunction ()
 
+set (API_DEVKIT_DIR $ENV{AC_API_DEVKIT_DIR})
+
+if (GITHUB_BUILD)
+	include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+	set (API_DEVKIT_DIR ${CONAN_ARCHICAD-APIDEVKIT_ROOT}/bin)
+endif ()
+
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
 
 set (CMAKE_SUPPRESS_REGENERATION 1)
 set (CMAKE_CONFIGURATION_TYPES Debug;Release;RelWithDebInfo)
-set (AC_API_DEVKIT_DIR $ENV{AC_API_DEVKIT_DIR} CACHE PATH "API DevKit directory.")
+set (AC_API_DEVKIT_DIR ${API_DEVKIT_DIR} CACHE PATH "API DevKit directory.")
 set (AC_ADDON_NAME "ExampleAddOn" CACHE STRING "Add-On name.")
 set (AC_ADDON_LANGUAGE "INT" CACHE STRING "Add-On language code.")
+set (AC_MDID_DEV "1" CACHE STRING "Your Developer ID")
+set (AC_MDID_LOC "1" CACHE STRING "Add-On Local ID")
 
 set (ACAPINC_FILE_LOCATION ${AC_API_DEVKIT_DIR}/Inc/ACAPinc.h)
 if (EXISTS ${ACAPINC_FILE_LOCATION})
@@ -59,6 +69,8 @@ set (AddOnResourcesFolder Sources/AddOnResources)
 # AddOnResources
 
 set (ResourceObjectsDir ${CMAKE_BINARY_DIR}/ResourceObjects)
+
+configure_file (${AddOnResourcesFolder}/ResourceMDIDIds.hpp.in ${ResourceObjectsDir}/ResourceMDIDIds.hpp)
 
 file (GLOB AddOnImageFiles
 	${AddOnResourcesFolder}/RFIX/Images/*.svg
@@ -88,6 +100,8 @@ add_custom_target (
 	SOURCES ${AddOnResourceFiles} ${AddOnImageFiles}
 )
 
+find_package(Python COMPONENTS Interpreter)
+
 get_filename_component (AddOnSourcesFolderAbsolute "${CMAKE_CURRENT_LIST_DIR}/${AddOnSourcesFolder}" ABSOLUTE)
 get_filename_component (AddOnResourcesFolderAbsolute "${CMAKE_CURRENT_LIST_DIR}/${AddOnResourcesFolder}" ABSOLUTE)
 if (WIN32)
@@ -96,7 +110,7 @@ if (WIN32)
 		DEPENDS ${AddOnResourceFiles} ${AddOnImageFiles}
 		COMMENT "Compiling resources..."
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${ResourceObjectsDir}"
-		COMMAND python "${AddOnResourcesFolderAbsolute}/Tools/CompileResources.py" "${AC_ADDON_LANGUAGE}" "${AC_API_DEVKIT_DIR}" "${AddOnSourcesFolderAbsolute}" "${AddOnResourcesFolderAbsolute}" "${ResourceObjectsDir}" "${ResourceObjectsDir}/${AC_ADDON_NAME}.res"
+		COMMAND ${Python_EXECUTABLE} "${AddOnResourcesFolderAbsolute}/Tools/CompileResources.py" "${AC_ADDON_LANGUAGE}" "${AC_API_DEVKIT_DIR}" "${AddOnSourcesFolderAbsolute}" "${AddOnResourcesFolderAbsolute}" "${ResourceObjectsDir}" "${ResourceObjectsDir}/${AC_ADDON_NAME}.res"
 		COMMAND ${CMAKE_COMMAND} -E touch "${ResourceObjectsDir}/AddOnResources.stamp"
 	)
 else ()
@@ -105,7 +119,7 @@ else ()
 		DEPENDS ${AddOnResourceFiles} ${AddOnImageFiles}
 		COMMENT "Compiling resources..."
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${ResourceObjectsDir}"
-		COMMAND python "${AddOnResourcesFolderAbsolute}/Tools/CompileResources.py" "${AC_ADDON_LANGUAGE}" "${AC_API_DEVKIT_DIR}" "${AddOnSourcesFolderAbsolute}" "${AddOnResourcesFolderAbsolute}" "${ResourceObjectsDir}" "${CMAKE_BINARY_DIR}/$<CONFIG>/${AC_ADDON_NAME}.bundle/Contents/Resources"
+		COMMAND ${Python_EXECUTABLE} "${AddOnResourcesFolderAbsolute}/Tools/CompileResources.py" "${AC_ADDON_LANGUAGE}" "${AC_API_DEVKIT_DIR}" "${AddOnSourcesFolderAbsolute}" "${AddOnResourcesFolderAbsolute}" "${ResourceObjectsDir}" "${CMAKE_BINARY_DIR}/$<CONFIG>/${AC_ADDON_NAME}.bundle/Contents/Resources"
 		COMMAND ${CMAKE_COMMAND} -E copy "${AC_API_DEVKIT_DIR}/Inc/PkgInfo" "${CMAKE_BINARY_DIR}/$<CONFIG>/${AC_ADDON_NAME}.bundle/Contents/PkgInfo"
 		COMMAND ${CMAKE_COMMAND} -E touch "${ResourceObjectsDir}/AddOnResources.stamp"
 	)
@@ -136,6 +150,7 @@ endif ()
 set_target_properties (AddOn PROPERTIES OUTPUT_NAME ${AC_ADDON_NAME})
 if (WIN32)
 	set_target_properties (AddOn PROPERTIES SUFFIX ".apx")
+	set_target_properties (AddOn PROPERTIES RUNTIME_OUTPUT_DIRECTORY_$<CONFIG> "${CMAKE_BINARY_DIR}/$<CONFIG>")
 else ()
 	set_target_properties (AddOn PROPERTIES BUNDLE TRUE)
 	set_target_properties (AddOn PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/${AddOnResourcesFolder}/RFIX.mac/Info.plist")
@@ -167,6 +182,8 @@ else ()
 endif ()
 
 SetCompilerOptions (AddOn ARCHICAD_VERSION)
+set_source_files_properties (${AddOnSourceFiles} PROPERTIES LANGUAGE CXX)
+
 file (GLOB ModuleFolders ${AC_API_DEVKIT_DIR}/Modules/*)
 target_include_directories (AddOn PUBLIC ${ModuleFolders})
 if (WIN32)

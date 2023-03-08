@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "conan",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/build/conan/conan_toolchain.cmake",
+        "CMAKE_POLICY_DEFAULT_CMP0091": "NEW"
+      }
+    },
+    {
+      "name": "default"
+    },
+    {
+      "name": "default-conan",
+      "inherits": ["conan"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-release",
+      "configurePreset": "default",
+      "configuration": "Release"
+    },
+    {
+      "name": "default-debug",
+      "configurePreset": "default",
+      "configuration": "Debug"
+    },
+    {
+      "name": "default-conan-release",
+      "configurePreset": "default-conan",
+      "configuration": "Release"
+    },
+    {
+      "name": "default-conan-debug",
+      "configurePreset": "default-conan",
+      "configuration": "Debug"
+    }
+  ]
+}
