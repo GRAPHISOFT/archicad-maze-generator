@@ -195,7 +195,7 @@ static void GenerateMaze ()
 			placedElementGuids.Push (placedSlabGuid);
 		}
 		if (mazeSettings.createGroup) {
-			err = ACAPI_ElementGroup_Create (placedElementGuids);
+			err = ElementGroup_Create (placedElementGuids);
 			if (err != NoError) {
 				return APIERR_CANCEL;
 			}
@@ -228,12 +228,12 @@ API_AddonType __ACDLL_CALL CheckEnvironment (API_EnvirParams* envir)
 
 GSErrCode __ACDLL_CALL RegisterInterface (void)
 {
-	return ACAPI_Register_Menu (AddOnMenuID, 0, MenuCode_Extras, MenuFlag_Default);
+	return Register_Menu (AddOnMenuID, 0, MenuCode_Extras, MenuFlag_Default);
 }
 
 GSErrCode __ACENV_CALL Initialize (void)
 {
-	return ACAPI_Install_MenuHandler (AddOnMenuID, MenuCommandHandler);
+	return Install_MenuHandler (AddOnMenuID, MenuCommandHandler);
 }
 
 GSErrCode __ACENV_CALL FreeData (void)

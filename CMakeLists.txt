@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.16)
 
 function (SetCompilerOptions target ac_version)
-	if (${ac_version} EQUAL "27")
+	if (${ac_version} GREATER_EQUAL "27")
 		target_compile_features (${target} PUBLIC cxx_std_17)
 	else ()
 		target_compile_features (${target} PUBLIC cxx_std_14)
@@ -26,6 +26,34 @@ function (SetCompilerOptions target ac_version)
 			-Wno-deprecated)
 		if (${ac_version} LESS_EQUAL "24")
 			target_compile_options (${target} PUBLIC -Wno-non-c-typedef-for-linkage)
+		endif ()
+	endif ()
+endfunction ()
+
+function (LinkACAP_STATLibraries target ac_version)
+	if (${ac_version} GREATER_EQUAL "27")
+		if (WIN32)
+			target_link_libraries (AddOn
+				"$<$<CONFIG:Debug>:${AC_API_DEVKIT_DIR}/Lib/ACAP_STATD.lib>"
+				"$<$<CONFIG:Release>:${AC_API_DEVKIT_DIR}/Lib/ACAP_STAT.lib>"
+				"$<$<CONFIG:RelWithDebInfo>:${AC_API_DEVKIT_DIR}/Lib/ACAP_STAT.lib>"
+			)
+		else ()
+			target_link_libraries (AddOn
+				"${AC_API_DEVKIT_DIR}/Lib/libACAP_STAT.a"
+			)
+		endif ()
+	else ()
+		if (WIN32)
+			target_link_libraries (AddOn
+				"$<$<CONFIG:Debug>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STATD.lib>"
+				"$<$<CONFIG:Release>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STAT.lib>"
+				"$<$<CONFIG:RelWithDebInfo>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STAT.lib>"
+			)
+		else ()
+			target_link_libraries (AddOn
+				"${AC_API_DEVKIT_DIR}/Lib/Mactel/libACAP_STAT.a"
+			)
 		endif ()
 	endif ()
 endfunction ()
@@ -170,18 +198,11 @@ target_include_directories (AddOn PUBLIC
 	${AC_API_DEVKIT_DIR}/Inc
 )
 
-if (WIN32)
-	target_link_libraries (AddOn
-		"$<$<CONFIG:Debug>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STATD.lib>"
-		"$<$<CONFIG:Release>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STAT.lib>"
-		"$<$<CONFIG:RelWithDebInfo>:${AC_API_DEVKIT_DIR}/Lib/Win/ACAP_STAT.lib>"
-	)
-else ()
+LinkACAP_STATLibraries (AddOn ARCHICAD_VERSION)
+
+if (NOT WIN32)
 	find_library (CocoaFramework Cocoa)
-	target_link_libraries (AddOn
-		"${AC_API_DEVKIT_DIR}/Lib/Mactel/libACAP_STAT.a"
-		${CocoaFramework}
-	)
+	target_link_libraries (AddOn ${CocoaFramework})
 endif ()
 
 SetCompilerOptions (AddOn ARCHICAD_VERSION)
