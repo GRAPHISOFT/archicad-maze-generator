@@ -195,7 +195,7 @@ static void GenerateMaze ()
 			placedElementGuids.Push (placedSlabGuid);
 		}
 		if (mazeSettings.createGroup) {
-			err = ACAPI_ElementGroup_Create (placedElementGuids);
+			err = ElementGroup_Create (placedElementGuids);
 			if (err != NoError) {
 				return APIERR_CANCEL;
 			}
@@ -218,7 +218,7 @@ static GSErrCode MenuCommandHandler (const API_MenuParams *menuParams)
 	return NoError;
 }
 
-API_AddonType __ACDLL_CALL CheckEnvironment (API_EnvirParams* envir)
+API_AddonType CheckEnvironment (API_EnvirParams* envir)
 {
 	RSGetIndString (&envir->addOnInfo.name, AddOnInfoID, AddOnNameID, ACAPI_GetOwnResModule ());
 	RSGetIndString (&envir->addOnInfo.description, AddOnInfoID, AddOnDescriptionID, ACAPI_GetOwnResModule ());
@@ -226,17 +226,17 @@ API_AddonType __ACDLL_CALL CheckEnvironment (API_EnvirParams* envir)
 	return APIAddon_Normal;
 }
 
-GSErrCode __ACDLL_CALL RegisterInterface (void)
+GSErrCode RegisterInterface (void)
 {
-	return ACAPI_Register_Menu (AddOnMenuID, 0, MenuCode_Extras, MenuFlag_Default);
+	return Register_Menu (AddOnMenuID, 0, MenuCode_Extras, MenuFlag_Default);
 }
 
-GSErrCode __ACENV_CALL Initialize (void)
+GSErrCode Initialize (void)
 {
-	return ACAPI_Install_MenuHandler (AddOnMenuID, MenuCommandHandler);
+	return Install_MenuHandler (AddOnMenuID, MenuCommandHandler);
 }
 
-GSErrCode __ACENV_CALL FreeData (void)
+GSErrCode FreeData (void)
 {
 	return NoError;
 }
