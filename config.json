@@ -1,0 +1,13 @@
+{
+    "addOnName": "MazeGenerator",
+    "defaultLanguage": "INT",
+    "languages": [
+        "INT"
+    ],
+    "version": "1.0.0",
+    "copyright": {
+        "name": "Graphisoft SE",
+        "year": "1984-%Y"
+    },
+    "description": "Maze generator Add-On for training purposes"
+}
