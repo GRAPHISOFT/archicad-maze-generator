@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os-type }}
+
+    strategy:
+      matrix:
+        os-type: [ windows-2022, macos-14 ]
+        ac-version: [ 25, 26, 27, 28, 29 ]
+
+    steps:
+      - name: Checkout the submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Setup Xcode
+        if: runner.os == 'macOS'
+        run: |
+          xcVersion=15.1
+          echo "Using Xcode version: ${xcVersion}"
+          sudo xcode-select -s /Applications/Xcode_${xcVersion}.app
+
+      - name: Run build script
+        run: |
+          python Tools/BuildAddOn.py --configFile config.json --acVersion ${{ matrix.ac-version }} --buildConfig Debug RelWithDebInfo
