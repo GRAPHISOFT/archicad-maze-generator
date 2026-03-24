@@ -3,6 +3,9 @@ name: Build
 on:
   push:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 defaults:
   run:
     shell: bash
@@ -18,14 +21,14 @@ jobs:
 
     steps:
       - name: Checkout the submodule
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
       - name: Setup Xcode
         if: runner.os == 'macOS'
