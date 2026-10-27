@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        os-type: [ windows-2022, macos-14 ]
+        os-type: [ windows-2022, macos-latest ]
         ac-version: [ 25, 26, 27, 28, 29 ]
 
     steps:
@@ -33,9 +33,8 @@ jobs:
       - name: Setup Xcode
         if: runner.os == 'macOS'
         run: |
-          xcVersion=15.1
-          echo "Using Xcode version: ${xcVersion}"
-          sudo xcode-select -s /Applications/Xcode_${xcVersion}.app
+          echo "Using:"
+          xcodebuild -version
 
       - name: Run build script
         run: |
